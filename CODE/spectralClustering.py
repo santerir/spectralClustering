@@ -22,10 +22,13 @@ import scipy as sp
 
 class spCluster:
 
-    def __init__(self, data):
+    def __init__(self, data, k):
         ro.r("source('Rcode/kNNutils.R')")
         ro.numpy2ri.acitvate()
         self.data = data
+        self.dataDim = data.shape[2]
+        self.k = k
         self.kNN = ro.r['getKNearestNeighbors']
 
-    def constructAdjMatrix(data, k): {}
+    def constructAdjMatrix(self, k):
+        neighbours = self.kNN(self.data, np.ones(self.dataDim), k)
