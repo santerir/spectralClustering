@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-#	IMPORTS
+# IMPORTS
 import rpy2.robjects as ro
-import numpy as np 
+import numpy as np
 import scipy as sp
 
-#	This is an algorithm for spectral clustering.
-#	It implements kNN utilities from R, but work is bieng done to translate these to run natively on python
-#	
+
+# This is an algorithm for spectral clustering.
+# It implements kNN utilities from R, but work is bieng done to translate
+# these to run natively on python
 #
 #
 #
@@ -15,6 +16,16 @@ import scipy as sp
 #
 #
 #
-#	Santeri Räisänen, 2015
+#
+# Santeri Räisänen, 2015
 
 
+class spCluster:
+
+    def __init__(self, data):
+        ro.r("source('Rcode/kNNutils.R')")
+        ro.numpy2ri.acitvate()
+        self.data = data
+        self.kNN = ro.r['getKNearestNeighbors']
+
+    def constructAdjMatrix(data, k): {}
