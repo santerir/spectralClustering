@@ -49,12 +49,20 @@ class spCluster:
                 aMatrix[neighbours[i, j], i] = np.exp(-neighbours[i, j + k])
         aMatrix = np.matrix(aMatrix)
 
-        # construct Laplacian, non symmetric normalized (random walk)
+        # Construct graph laplacian, unnormalized
 
         dMatrix = np.zeros(self.dataSize, self.dataSize)
         for i in xrange(i, self.dataSize):
-            dMatrix[i, i] = 1/np.sum(aMatrix[i, :])
+            dMatrix[i, i] = np.sum(aMatrix[i, :])
         dMatrix = np.matrix(dMatrix)
 
-        self.Laplacian = np.identity(self.dataSize) - dMatrix * aMatrix
-        
+        self.Laplacian = dMatrix - aMatrix
+        self.dMatrix = dMatrix
+
+# Find k first  eigenvalues
+
+    def findEigenvalues(self):
+        w, v = sp.linalg.eigh(self.Laplacian, b=self.dMatrix,
+                              eigvals=range(1, self.k))
+        self.eigValues = w
+        self.eigVectors = v
