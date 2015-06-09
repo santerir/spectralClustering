@@ -4,6 +4,7 @@
 import rpy2.robjects as ro
 import numpy as np
 import scipy as sp
+import sklearn.cluster as cl
 
 
 # This is an algorithm for spectral clustering.
@@ -22,13 +23,13 @@ import scipy as sp
 
 class spCluster:
 
-    def __init__(self, data, k):
+    def __init__(self, data, nclusters):
         ro.r("source('Rcode/kNNutils.R')")
         ro.numpy2ri.acitvate()
         self.data = data
         self.dataDim = data.shape[2]
         self.dataSize = data.shape[1]
-        self.k = k
+        self.nclusters = nclusters
         self.kNN = ro.r['getKNearestNeighbors']
 
 # Constructs adjacency matrix of similarity graph
@@ -63,6 +64,6 @@ class spCluster:
 
     def findEigenvalues(self):
         w, v = sp.linalg.eigh(self.Laplacian, b=self.dMatrix,
-                              eigvals=range(1, self.k))
+                              eigvals=range(1, self.nclusters))
         self.eigValues = w
         self.eigVectors = v
