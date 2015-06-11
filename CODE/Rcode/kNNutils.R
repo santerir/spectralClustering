@@ -3,14 +3,20 @@ library("parallel")
 
 ## -- returns indices of neighbours and distances to them -- ##
 
-getKNearestNeighbors <- function(data,k,param=0) {
-    if(param==0) {
-      parame <- rep(1,NCOL(data));
+getKNearestNeighbors <- function(data,k) {
+
+    if (k>=NROW(data)/2+5) {
+      print("ERROR: this would return over half the datapoints as neighbours. I cant do that for you");
+      return(-1);
     }
-    param <<- param;
 
+    b <- floor(log2(NROW(data)/k));
+    if(b < k+5) {
+      b <- b-1
+    }
+    a <- ceiling(NROW(data)/(2^b))
 
-    sp_tree <- constructSpTree(data,max(k+10,20));
+    sp_tree <- constructSpTree(data,a);
     cores <- detectCores();
     limit <- log2(length(sp_tree)+1)-1
     res <- mclapply(apply(data, 1, FUN=list),function(x) getKnn(unlist(x),sp_tree,k,limit),mc.cores=cores);
@@ -35,17 +41,10 @@ getKnn <- function(x, sp_tree, k, limit) {
 
 recursiveSearch <- function(sp_tree,Vector,k,level,limit,s_b)  {
   if (level>=(2^limit)){
-    a <- LInfMetric(sp_tree[[level]]$dat,Vector);    
+    a <- L2Metric(sp_tree[[level]]$dat,Vector);    
     ord <- order(a);
-    copy <- sp_tree[[level]][ord,];
   
-    if (is.data.frame(copy)) {
-      return(cbind(dist=a[ord[1:k]],copy[1:k,]));
-    }
-    else {
-      print("huzzaah! a wild error appears!");
-      browser();
-    }
+    return(data.frame(cbind(dist=a[ord[1:k]],sp_tree[[level]][ord[1:k],])));
   }
   
   r = projections(sp_tree[[level]][[1]],Vector)
@@ -81,7 +80,7 @@ recursiveSearch <- function(sp_tree,Vector,k,level,limit,s_b)  {
 
 recursiveSearchBound <- function(sp_tree,Vector,level,limit,k)  {
   if (level>=(2^limit)){
-    a <- LInfMetric(sp_tree[[level]]$dat,Vector);
+    a <- L2Metric(sp_tree[[level]]$dat,Vector);
     a <- a[order(a)];
     if(min(a)==0) {
       return(a[k+1]);
@@ -136,32 +135,6 @@ constructSpTree <- function(data, b_size)  {
       }
       i<-i+1;
     }
-  }
-}
-
-
-
-LInfMetric <- function(vector1,vector2) {
-
-  resultV <- c();
-  lim <- 1;
-  if (is.matrix(vector1)) {
-    for(i in (param-1)) {
-      resultV <- cbind(resultV,L2Metric(vector1[,lim:(lim+i)],vector2[lim:(lim+i)]));
-      lim <- lim + i + 1;
-    }
-  }
-  else  {
-    for(i in param) {
-      resultsV <- cbind(resultV,L2Metric(vector1[lim:(lim+i)],vector2[lim:(lim+i)]));
-      lim <- lim + i + 1;
-    }
-  }
-  if (is.matrix(resultV)) {
-    return(apply(resultV,1,max));
-  }
-  else {
-    return(max(resultV));
   }
 }
 
