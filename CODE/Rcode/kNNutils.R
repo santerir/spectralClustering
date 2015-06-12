@@ -10,13 +10,12 @@ getKNearestNeighbors <- function(data,k) {
       return(-1);
     }
 
-    b <- floor(log2(NROW(data)/k));
-    if(b < k+5) {
-      b <- b-1
-    }
-    a <- ceiling(NROW(data)/(2^b))
+    b <- ceiling(log2(NROW(data)/(k+5))-1);
 
-    sp_tree <- constructSpTree(data,a);
+    sp_tree <- constructSpTree(data,b);
+
+    browser();
+    
     cores <- detectCores();
     limit <- log2(length(sp_tree)+1)-1
     res <- mclapply(apply(data, 1, FUN=list),function(x) getKnn(unlist(x),sp_tree,k,limit),mc.cores=cores);
@@ -105,37 +104,65 @@ recursiveSearchBound <- function(sp_tree,Vector,level,limit,k)  {
 ## -- SUPPORT FUNCTIONS --
 ## -----------------------
 
-constructSpTree <- function(data, b_size)  {
+# constructSpTree <- function(data, b_size)  {
+#   df <- data.frame(ind=1:NROW(data),dat=rep(0,NROW(data)));
+#   df$dat <- data;
+
+#   sp_tree <- list(df)
+
+#   i <- 1;
+  
+#   while(1==1) {
+    
+#     p <- partition(sp_tree[[i]]$dat);
+
+#     p <- list(p);
+#     if (is.matrix(data)) {
+      
+#       pr <- projections(p[[1]],sp_tree[[i]]$dat);
+      
+#       SU <- summary(pr);
+#       sp_tree[[2*i]] <- sp_tree[[i]][which(pr>=SU[3]),];
+#       sp_tree[[(2*i)+1]] <- sp_tree[[i]][which(pr<SU[3]),];
+      
+#       p[[2]] <- SU[3];
+#       sp_tree[[i]] <- p;
+
+      
+#       if ((log2(2*(i+1)))==floor(log2(2*(i+1))) && (NROW(sp_tree[[2*i]])<=b_size)){
+#         return(sp_tree);;                                                                      
+#       }
+#       i<-i+1;
+#     }
+#   }
+# }
+
+constructSpTree <- function(data, b)  {
   df <- data.frame(ind=1:NROW(data),dat=rep(0,NROW(data)));
   df$dat <- data;
 
   sp_tree <- list(df)
 
-  i <- 1;
-  
-  while(1==1) {
+  limit <- 2^(b-1)-1;
+
+  for(i in 1:limit) {
     
     p <- partition(sp_tree[[i]]$dat);
 
     p <- list(p);
-    if (is.matrix(data)) {
-      
-      pr <- projections(p[[1]],sp_tree[[i]]$dat);
-      
-      SU <- summary(pr);
-      sp_tree[[2*i]] <- sp_tree[[i]][which(pr>=SU[3]),];
-      sp_tree[[(2*i)+1]] <- sp_tree[[i]][which(pr<SU[3]),];
-      
-      p[[2]] <- SU[3];
-      sp_tree[[i]] <- p;
 
       
-      if ((log2(2*(i+1)))==floor(log2(2*(i+1))) && (NROW(sp_tree[[2*i]])<=b_size)){
-        return(sp_tree);;                                                                      
-      }
-      i<-i+1;
-    }
+    pr <- projections(p[[1]],sp_tree[[i]]$dat);
+      
+    SU <- summary(pr);
+    sp_tree[[2*i]] <- sp_tree[[i]][which(pr>=SU[3]),];
+    sp_tree[[(2*i)+1]] <- sp_tree[[i]][which(pr<SU[3]),];
+      
+    p[[2]] <- SU[3];
+    sp_tree[[i]] <- p;
+
   }
+  return(sp_tree)
 }
 
 
