@@ -98,8 +98,10 @@ class spCluster:
 
     def fitClusters(self, k):
         self.constructLaplacian(k)
+        print("Laplacian: Complete")
         self.findEigenvalues()
+        print("Eigenvalues: Complete")
         self.cluster()
 
-    def setData(self,data):
+    def setData(self, data):
         self.data = data
